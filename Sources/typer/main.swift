@@ -2,8 +2,8 @@ import Foundation
 import Cocoa
 
 // MARK: - Config
-let START_DELAY_SECONDS: UInt32 = 7
-let KEY_DELAY_US: useconds_t = 40_000
+let START_DELAY_SECONDS: UInt32 = 5
+let KEY_DELAY_US: useconds_t = 20_000
 
 // MARK: - Typing Engine
 func typeCharacter(_ char: UniChar) {
