@@ -1,235 +1,104 @@
-# Typer
+<div align="center">
 
-A macOS CLI tool that simulates keyboard typing to work around paste-blocking in secured online assessment platforms.
+# ⚡ Typer
 
-## Why?
+**The app that types so you don't have to.**
 
-Many online assessment and exam platforms disable paste operations (`Cmd+V`) to prevent cheating. However, window switching is often still allowed. This creates scenarios where legitimate use cases are blocked:
+Because some exam platforms think disabling Ctrl+V is "security."<br/>
+Spoiler: it isn't.
 
-- **Code snippets**: Copying code from your IDE for debugging
-- **Configuration**: Pasting environment variables or connection strings
-- **Documentation**: Referencing technical documentation
-- **Accessibility**: Users who rely on paste for efficiency
+[![Star on GitHub](https://img.shields.io/github/stars/vishesh-sachan/typer?style=social)](https://github.com/vishesh-sachan/typer)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-**Typer** doesn't bypass security—it's a workaround that simulates human typing at the OS level, character by character.
+</div>
 
-## How It Works
+---
 
-1. **You run the CLI tool** with your text as an argument
-2. **5-second countdown** gives you time to switch windows
-3. **You move your cursor** to the secured text field
-4. **Typer simulates keypresses** using macOS Core Graphics events
-5. **Text appears** as if you typed it manually
+## 🎬 Demo
 
-The tool uses `CGEvent` APIs to generate keyboard events at the system level, which appear as physical keyboard input to applications.
+<!-- Replace with your actual demo video/gif -->
+<div align="center">
 
-## Design
+https://github.com/user-attachments/assets/YOUR_VIDEO_ID_HERE
 
-### Architecture
+*Paste text. Press start. Look innocent.*
+
+</div>
+
+---
+
+## 💡 What is this?
+
+A desktop app that simulates real keyboard input — character by character, at the OS level. Paste your text, switch windows, and watch it type itself out like a very fast intern.
+
+**Works on:** macOS · Windows · Linux
+
+---
+
+## 📦 Install
+
+Head to [**Releases**](https://github.com/vishesh-sachan/typer/releases) and grab the installer for your OS:
+
+| Platform | File |
+|----------|------|
+| macOS (Apple Silicon) | `.dmg` |
+| macOS (Intel) | `.dmg` |
+| Windows | `.msi` / `.exe` |
+| Linux | `.deb` / `.AppImage` |
+
+Download. Install. Done. No compiling. No terminal. No PhD required.
+
+---
+
+## 🏗️ Architecture
 
 ```
-┌─────────────────┐
-│  CLI Interface  │
-│  (main.swift)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ Typing Engine   │
-│ • CGEventSource │
-│ • CGEvent       │
-│ • Unicode       │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  System Events  │
-│  (macOS HID)    │
-└─────────────────┘
+typer/
+├── typer-app/          ← Desktop app (Tauri + React)
+│   ├── src/            ← React frontend (TypeScript)
+│   ├── src-tauri/      ← Rust backend (enigo for keystrokes)
+│   └── ...
+├── cli/                ← Original CLI tools
+│   ├── mac/            ← Swift CLI version
+│   └── windows/        ← C++ CLI version
+└── .github/workflows/  ← CI/CD (auto-builds on tag)
 ```
 
-### Key Components
+**Frontend:** React 19 + TypeScript + Vite — dark themed, minimal, gets out of your way.
 
-- **CGEventSource**: Creates events from HID system state
-- **CGEvent**: Generates keyboard events (keyDown/keyUp)
-- **Unicode String Support**: Handles all characters including special chars, emojis, etc.
-- **Configurable Delays**: 
-  - `START_DELAY_SECONDS`: Time to switch windows (default: 5s)
-  - `KEY_DELAY_US`: Microseconds between keypresses (default: 20ms)
+**Backend:** Rust + [Enigo](https://github.com/enigo-rs/enigo) — simulates OS-level keystrokes. Not a clipboard hack. Actual key events.
 
-### Why Character-by-Character?
+**Build:** Tauri 2 — wraps it all into a native app that's ~5MB, not 200MB like Electron.
 
-Paste-blocking works by detecting clipboard operations. By simulating individual keypresses:
-- Each character is a separate keyboard event
-- No clipboard interaction occurs
-- Applications see "real" typing behavior
-- Works with any text input field
+---
 
-## Installation
+## 🚀 How it works
 
-### Prerequisites
+1. Paste your text
+2. Hit **Start Typing**
+3. Alt-tab to your target window
+4. Typer types it out, one key at a time
+5. Play dumb
 
-- macOS (uses Core Graphics framework)
-- Swift toolchain
-- Accessibility permissions
+---
 
-### Build from Source
+## ⭐ Star This Repo
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/typer.git
-cd typer
+If Typer saved you from manually typing 500 lines into a textbox like a caveman, consider starring the repo. It's free and makes me mass produce serotonin.
 
-# Build release binary
-swift build -c release
+[![Star on GitHub](https://img.shields.io/github/stars/vishesh-sachan/typer?style=for-the-badge&logo=github&label=Star&color=10b981)](https://github.com/vishesh-sachan/typer)
 
-# Install to /usr/local/bin
-cp .build/release/typer /usr/local/bin/
-```
+---
 
-### Permissions
+## 🧑‍💻 Development
 
-macOS requires accessibility permissions for keyboard automation:
+See [typer-app/README.md](typer-app/README.md) for setup instructions.
 
-1. Open **System Preferences** → **Security & Privacy** → **Privacy**
-2. Select **Accessibility** from the left sidebar
-3. Add your terminal app (Terminal.app, iTerm2, etc.)
-4. Restart your terminal
+---
 
-## Usage
+<div align="center">
 
-### Basic Usage
+**Built by [Vishesh Sachan](https://github.com/vishesh-sachan)**<br/>
+*Because I was too lazy to type and too smart to get caught.*
 
-```bash
-typer "Hello, World!"
-```
-
-### Multi-line Text
-
-```bash
-typer "Line 1
-Line 2
-Line 3"
-```
-
-### With Special Characters
-
-```bash
-typer "user@example.com: P@ssw0rd!"
-```
-
-### Code Snippets
-
-```bash
-typer 'const API_KEY = "abc123def456";'
-```
-
-### From Clipboard
-
-```bash
-typer "$(pbpaste)"
-```
-
-### Workflow
-
-```bash
-# 1. Copy your text
-echo "Important text" | pbcopy
-
-# 2. Run typer with clipboard content
-typer "$(pbpaste)"
-
-# 3. Within 5 seconds:
-#    - Switch to exam window (Cmd+Tab)
-#    - Click in the text field
-#    - Wait for typing to complete
-```
-
-## Configuration
-
-Edit constants in [main.swift](Sources/typer/main.swift):
-
-```swift
-let START_DELAY_SECONDS: UInt32 = 5      // Countdown before typing starts
-let KEY_DELAY_US: useconds_t = 20_000    // Delay between keypresses (microseconds)
-```
-
-- **Increase `START_DELAY_SECONDS`**: If you need more time to switch windows
-- **Increase `KEY_DELAY_US`**: If typing is too fast and characters are dropped
-- **Decrease `KEY_DELAY_US`**: For faster typing (test carefully)
-
-## Limitations
-
-- **macOS only**: Uses Core Graphics framework
-- **Requires accessibility permissions**: System-level keyboard events
-- **Not instantaneous**: Types at ~50 chars/second (configurable)
-- **No focus validation**: Ensure cursor is in the correct field
-- **Character encoding**: UTF-16 support, may not work with all languages
-
-## Ethical Considerations
-
-⚠️ **This tool is designed for legitimate use cases only.**
-
-### Acceptable Uses
-- Personal debugging and development
-- Accessibility needs
-- Copying your own notes into forms
-- Working around overly restrictive policies
-
-### Unacceptable Uses
-- ❌ Cheating on exams or assessments
-- ❌ Bypassing security for unauthorized access
-- ❌ Violating terms of service
-- ❌ Academic dishonesty
-
-**Use responsibly. Respect the purpose of security measures.**
-
-## Technical Details
-
-### How Paste-Blocking Works
-
-Most platforms use JavaScript to intercept paste events:
-```javascript
-input.addEventListener('paste', (e) => e.preventDefault());
-```
-
-This blocks clipboard operations but cannot detect individual keyboard events.
-
-### How Typer Works
-
-Typer generates hardware-level keyboard events:
-```swift
-let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true)
-keyDown?.keyboardSetUnicodeString(stringLength: 1, unicodeString: [char])
-keyDown?.post(tap: .cghidEventTap)
-```
-
-These events are indistinguishable from physical keyboard input.
-
-## Troubleshooting
-
-### "Operation not permitted"
-- Grant accessibility permissions (see Installation)
-
-### Characters are dropped
-- Increase `KEY_DELAY_US` to give more time between keypresses
-
-### Wrong window receives text
-- Increase `START_DELAY_SECONDS`
-- Ensure you click in the target field during countdown
-
-### Special characters don't work
-- Check if the target application supports Unicode input
-- Some characters may require different input methods
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Contributing
-
-Contributions welcome! Please open an issue or submit a pull request.
-
-## Disclaimer
-
-This tool is provided as-is for educational and legitimate purposes. Users are responsible for complying with applicable laws, terms of service, and ethical guidelines. The authors are not responsible for misuse.
+</div>

@@ -1,176 +1,108 @@
-# Typer - Cross-Platform Keyboard Simulator
+# typer-app
 
-A modern Tauri + React application that simulates keyboard typing to work around paste-blocking in secured online assessment platforms.
+Technical docs for the Tauri desktop app.
 
-## Features
+## Tech Stack
 
-- 🎨 **Modern UI**: Clean, intuitive interface built with React
-- ⏱️ **Countdown Timer**: Configurable delay (1-30 seconds) before typing starts
-- ⌨️ **Realistic Typing**: Simulates keyboard input at the OS level (20ms delay between keys)
-- 🔒 **Cross-Platform**: Works on Windows, macOS, and Linux
-- 📦 **No Compilation Required**: Distributed as ready-to-run executables
-
-## Why?
-
-Many online assessment and exam platforms disable paste operations to prevent cheating. However, window switching is often still allowed. This creates scenarios where legitimate use cases are blocked:
-
-- **Code snippets**: Copying code from your IDE for debugging
-- **Configuration**: Pasting environment variables or connection strings
-- **Documentation**: Referencing technical documentation
-- **Accessibility**: Users who rely on paste for efficiency
-
-**Typer** doesn't bypass security—it's a workaround that simulates human typing at the OS level, character by character.
-
-## How It Works
-
-1. Enter your text in the textarea
-2. Set the countdown delay (default: 5 seconds)
-3. Click "Start Typing"
-4. Switch to your target window
-5. Text types automatically after the countdown
+| Layer | Tech | Version |
+|-------|------|---------|
+| Frontend | React + TypeScript | 19 |
+| Bundler | Vite | 7 |
+| Backend | Rust (Tauri 2) | stable |
+| Keyboard | [Enigo](https://github.com/enigo-rs/enigo) | 0.6 |
+| Package Manager | [Bun](https://bun.sh) | latest |
+| Icons | [Lucide React](https://lucide.dev) | 0.575 |
 
 ## Prerequisites
 
-- **Development**: 
-  - Bun (latest version)
-  - Rust (latest stable)
-  - Platform-specific requirements:
-    - **macOS**: Xcode Command Line Tools
-    - **Windows**: Microsoft C++ Build Tools
-    - **Linux**: Development packages (see Tauri docs)
+- **Bun** (latest)
+- **Rust** (stable)
+- Platform deps:
+  - **macOS**: Xcode Command Line Tools
+  - **Windows**: Microsoft C++ Build Tools
+  - **Linux**: `sudo apt install libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libxtst-dev`
 
-## Development
-
-### Install Dependencies
+## Commands
 
 ```bash
-cd typer-app
-bun install
+bun install          # Install frontend deps
+bun run dev          # Dev mode (Tauri + Vite HMR)
+bun run build        # Production build
+bun run vite:dev     # Frontend only (no Tauri)
+bun run vite:build   # Frontend build only
 ```
 
-### Run Development Server
+## Project Structure
 
-```bash
-bunx tauri dev
 ```
-
-This starts the Vite dev server and launches the Tauri app in development mode with hot-reload.
-
-### Build for Production
-
-```bash
-bunx tauri build
+typer-app/
+├── src/
+│   ├── App.tsx              # Root component (routing)
+│   ├── App.css              # Global styles + CSS variables
+│   ├── constants.ts         # Shared types & constants
+│   └── components/
+│       ├── Header.tsx       # Nav bar (brand, settings, GitHub)
+│       ├── Footer.tsx       # Feature badges
+│       ├── StatusBar.tsx    # Success/error/info messages
+│       ├── HomePage.tsx     # Text input, start/stop, typing logic
+│       └── SettingsPage.tsx # Delay, speed, about, creator
+├── src-tauri/
+│   ├── src/lib.rs           # Rust backend (start_typing, stop_typing)
+│   ├── Cargo.toml           # Rust dependencies
+│   └── tauri.conf.json      # App config (window, bundle, icons)
+└── package.json
 ```
-
-The built application will be in `src-tauri/target/release/bundle/`.
-
-## Distribution
-
-### macOS
-
-1. Build the app: `bunx tauri build`
-2. Find the `.app` bundle in `src-tauri/target/release/bundle/macos/`
-3. **Important**: On first run, users need to:
-   - Right-click the app and select "Open" (or go to System Settings)
-   - Grant **Accessibility** permissions in System Settings → Privacy & Security → Accessibility
-   - This allows the app to simulate keyboard input system-wide
-
-### Windows
-
-1. Build the app: `bunx tauri build`
-2. Find the `.exe` or `.msi` installer in `src-tauri/target/release/bundle/`
-3. Distribute the installer to users
-4. No special permissions required
-
-### Linux
-
-1. Build the app: `bunx tauri build`
-2. Find the `.AppImage`, `.deb`, or `.rpm` in `src-tauri/target/release/bundle/`
-3. Users may need to make the AppImage executable: `chmod +x Typer.AppImage`
 
 ## Architecture
 
 ```
-┌─────────────────────────────┐
-│     React Frontend          │
-│  • Text input & controls    │
-│  • Countdown timer          │
-│  • Status display           │
-└──────────┬──────────────────┘
-           │ Tauri IPC
+┌──────────────────────────────┐
+│  React Frontend (WebView)    │
+│  Text input → invoke()       │
+└──────────┬───────────────────┘
+           │ Tauri IPC (JSON)
            ▼
-┌─────────────────────────────┐
-│     Rust Backend            │
-│  • Enigo keyboard library   │
-│  • Cross-platform typing    │
-│  • Character-by-character   │
-└──────────┬──────────────────┘
-           │
+┌──────────────────────────────┐
+│  Rust Backend                │
+│  start_typing(text, delay)   │
+│  stop_typing() → AtomicBool  │
+└──────────┬───────────────────┘
+           │ enigo::Keyboard::text()
            ▼
-┌─────────────────────────────┐
-│   Operating System          │
-│  • Keyboard events (HID)    │
-│  • Application input        │
-└─────────────────────────────┘
+┌──────────────────────────────┐
+│  OS Keyboard Events (HID)    │
+└──────────────────────────────┘
 ```
 
-## Technical Details
+### Typing Flow
 
-- **Frontend**: React 19 + TypeScript + Vite
-- **Backend**: Tauri 2 + Rust
-- **Keyboard Simulation**: Enigo crate (cross-platform)
-- **Key Delay**: 20ms between characters
-- **Package Manager**: Bun
+1. Frontend calls `invoke("start_typing", { text, delaySeconds })`
+2. Rust sleeps for `delay_seconds` (checking stop flag each second)
+3. Loops through each char, calls `enigo.text()` with 20ms delay
+4. `stop_typing` sets an `AtomicBool` flag — checked every iteration
+
+## Build Output
+
+| Platform | Path | Formats |
+|----------|------|---------|
+| macOS | `src-tauri/target/release/bundle/macos/` | `.app`, `.dmg` |
+| Windows | `src-tauri/target/release/bundle/` | `.exe`, `.msi` |
+| Linux | `src-tauri/target/release/bundle/` | `.deb`, `.AppImage` |
 
 ## Troubleshooting
 
-### macOS: "App is damaged and can't be opened"
+**macOS: "App is damaged"** → `xattr -cr /path/to/Typer.app`
 
-This happens with unsigned apps. Fix:
+**macOS: Typing doesn't work** → System Settings → Privacy & Security → Accessibility → Enable Typer
+
+**Windows: Antivirus blocks it** → Add exception for the `.exe`
+
+**Linux: Permission denied** → `chmod +x Typer*.AppImage`
+
+## CI/CD
+
+Release workflow at `../.github/workflows/release.yml` — triggered on `v*` tags. Builds on macOS, Windows, and Ubuntu runners in parallel, uploads artifacts to GitHub Releases as a draft.
+
 ```bash
-xattr -cr /path/to/Typer.app
+git tag v0.1.0 && git push origin v0.1.0  # triggers build
 ```
-
-### macOS: Typing doesn't work
-
-Grant Accessibility permissions:
-1. System Settings → Privacy & Security → Accessibility
-2. Enable "Typer"
-
-### Windows: Antivirus blocks the app
-
-Some antivirus software may flag keyboard automation tools. Add an exception if you trust the source.
-
-### Linux: Permission denied
-
-Make the AppImage executable:
-```bash
-chmod +x Typer*.AppImage
-```
-
-## Security & Ethics
-
-This tool is designed for **legitimate use cases** where paste functionality is blocked but not prohibited (e.g., technical limitations rather than security requirements). 
-
-**Do not use this tool to:**
-- Violate exam integrity policies
-- Bypass security measures intended to prevent cheating
-- Circumvent authentication or authorization systems
-
-Users are responsible for ensuring their use complies with applicable policies and regulations.
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Contributing
-
-Contributions welcome! Please open an issue or PR on GitHub.
-
-## Credits
-
-Built with:
-- [Tauri](https://tauri.app/) - Cross-platform app framework
-- [React](https://react.dev/) - UI framework
-- [Enigo](https://github.com/enigo-rs/enigo) - Cross-platform keyboard automation
-- [Bun](https://bun.sh/) - JavaScript runtime and package manager
