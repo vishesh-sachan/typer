@@ -30,7 +30,7 @@ function App() {
     try {
       await invoke("start_typing", {
         text: text,
-        delaySeconds: BigInt(delaySeconds),
+        delaySeconds: delaySeconds,
       });
       setStatus("✓ Typing completed successfully!");
     } catch (error) {
