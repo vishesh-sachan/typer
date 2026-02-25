@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Play, Keyboard, Copy, Check } from "lucide-react";
+import { Play, Square, Keyboard, Copy, Check } from "lucide-react";
 import { StatusBar } from "./StatusBar";
 import type { Status } from "../constants";
 
@@ -15,6 +15,7 @@ export function HomePage({ delaySeconds, typingSpeed }: HomePageProps) {
   const [countdown, setCountdown] = useState(0);
   const [status, setStatus] = useState<Status>({ type: "", message: "" });
   const [copied, setCopied] = useState(false);
+  const stoppedRef = useRef(false);
 
   async function startTyping() {
     if (!text.trim()) {
@@ -22,6 +23,7 @@ export function HomePage({ delaySeconds, typingSpeed }: HomePageProps) {
       return;
     }
 
+    stoppedRef.current = false;
     setIsTyping(true);
     setCountdown(delaySeconds);
     setStatus({ type: "info", message: "GO GO GO! Switch windows now!" });
@@ -39,13 +41,26 @@ export function HomePage({ delaySeconds, typingSpeed }: HomePageProps) {
         text: text,
         delaySeconds: delaySeconds,
       });
-      setStatus({ type: "success", message: "Done. You're welcome." });
+      const msg = stoppedRef.current ? "Stopped." : "Done. You're welcome.";
+      setStatus({
+        type: stoppedRef.current ? "info" : "success",
+        message: msg,
+      });
     } catch (error) {
       setStatus({ type: "error", message: `Skill issue: ${error}` });
     } finally {
       clearInterval(interval);
       setIsTyping(false);
       setCountdown(0);
+    }
+  }
+
+  async function stopTyping() {
+    try {
+      await invoke("stop_typing");
+      stoppedRef.current = true;
+    } catch (_) {
+      // ignore
     }
   }
 
@@ -93,27 +108,36 @@ export function HomePage({ delaySeconds, typingSpeed }: HomePageProps) {
       </div>
 
       {/* Action Area */}
-      <button
-        className="start-btn"
-        onClick={startTyping}
-        disabled={isTyping || !text.trim()}
-      >
-        {isTyping ? (
-          <>
-            <div className="spinner" />
-            <span>
-              {countdown > 0
-                ? `Switching in ${countdown}...`
-                : "Typing..."}
-            </span>
-          </>
-        ) : (
-          <>
-            <Play size={18} fill="currentColor" />
-            <span>Start Typing</span>
-          </>
+      <div className="action-row">
+        <button
+          className="start-btn"
+          onClick={startTyping}
+          disabled={isTyping || !text.trim()}
+        >
+          {isTyping ? (
+            <>
+              <div className="spinner" />
+              <span>
+                {countdown > 0
+                  ? `Switching in ${countdown}...`
+                  : "Typing..."}
+              </span>
+            </>
+          ) : (
+            <>
+              <Play size={18} fill="currentColor" />
+              <span>Start Typing</span>
+            </>
+          )}
+        </button>
+
+        {isTyping && (
+          <button className="stop-btn" onClick={stopTyping}>
+            <Square size={16} fill="currentColor" />
+            <span>Stop</span>
+          </button>
         )}
-      </button>
+      </div>
 
       {/* Status */}
       <StatusBar status={status} />
