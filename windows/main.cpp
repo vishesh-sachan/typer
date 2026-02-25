@@ -29,7 +29,7 @@ void typeCharacter(wchar_t character) {
     inputs[1].ki.dwExtraInfo = 0;
     
     SendInput(2, inputs, sizeof(INPUT));
-    std::this_thread::sleep_for(std::chrono::milliseconds(KEY_DELAY_MS));
+    Sleep(KEY_DELAY_MS);
 }
 
 // MARK: - Unicode conversion helper
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     
     for (int i = START_DELAY_SECONDS; i > 0; i--) {
         std::cout << i << "..." << std::flush;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        Sleep(1000);
     }
     std::cout << std::endl;
     
