@@ -186,6 +186,11 @@ body {
   margin-bottom: 0.875rem;
 }
 
+.card-actions {
+  display: flex;
+  gap: 0.375rem;
+}
+
 .icon-btn {
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Play, Square, Keyboard, Copy, Check } from "lucide-react";
+import { Play, Square, Keyboard, Copy, Check, X } from "lucide-react";
 import { StatusBar } from "./StatusBar";
 import type { Status } from "../constants";
 
@@ -41,11 +41,12 @@ export function HomePage({ delaySeconds, typingSpeed }: HomePageProps) {
         text: text,
         delaySeconds: delaySeconds,
       });
-      const msg = stoppedRef.current ? "Stopped." : "Done. You're welcome.";
-      setStatus({
-        type: stoppedRef.current ? "info" : "success",
-        message: msg,
-      });
+      if (stoppedRef.current) {
+        setStatus({ type: "info", message: "Stopped." });
+      } else {
+        setText("");
+        setStatus({ type: "success", message: "Done. You're welcome." });
+      }
     } catch (error) {
       setStatus({ type: "error", message: `Skill issue: ${error}` });
     } finally {
@@ -79,14 +80,24 @@ export function HomePage({ delaySeconds, typingSpeed }: HomePageProps) {
             <Keyboard size={16} />
             <span>Text to Type</span>
           </div>
-          <button
-            className="icon-btn"
-            onClick={handleCopyText}
-            title="Copy text"
-            disabled={!text.trim()}
-          >
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-          </button>
+          <div className="card-actions">
+            <button
+              className="icon-btn"
+              onClick={handleCopyText}
+              title="Copy text"
+              disabled={!text.trim()}
+            >
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+            </button>
+            <button
+              className="icon-btn"
+              onClick={() => setText("")}
+              title="Clear text"
+              disabled={!text.trim() || isTyping}
+            >
+              <X size={14} />
+            </button>
+          </div>
         </div>
         <textarea
           value={text}
