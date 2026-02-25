@@ -2,7 +2,10 @@
 
 import { track } from "@vercel/analytics";
 
-const GITHUB_RELEASE = "https://github.com/vishesh-sachan/typer/releases/latest";
+const GITHUB_RELEASE =
+  "https://github.com/vishesh-sachan/typer/releases/download/v0.1.0";
+const GITHUB_RELEASES_PAGE =
+  "https://github.com/vishesh-sachan/typer/releases/latest";
 
 const platforms = [
   {
@@ -13,8 +16,8 @@ const platforms = [
       </svg>
     ),
     files: [
-      { label: "Apple Silicon (.dmg)", asset: "aarch64.dmg" },
-      { label: "Intel (.dmg)", asset: "x64.dmg" },
+      { label: "Apple Silicon (.dmg)", asset: "Typer_0.1.0_aarch64.dmg" },
+      { label: "Intel (.dmg)", asset: "Typer_0.1.0_x64.dmg" },
     ],
   },
   {
@@ -25,8 +28,8 @@ const platforms = [
       </svg>
     ),
     files: [
-      { label: "Installer (.msi)", asset: "x64_en-US.msi" },
-      { label: "Portable (.exe)", asset: "x64-setup.exe" },
+      { label: "Installer (.msi)", asset: "Typer_0.1.0_x64_en-US.msi" },
+      { label: "Setup (.exe)", asset: "Typer_0.1.0_x64-setup.exe" },
     ],
   },
   {
@@ -37,8 +40,9 @@ const platforms = [
       </svg>
     ),
     files: [
-      { label: "Debian (.deb)", asset: "amd64.deb" },
-      { label: "AppImage", asset: "amd64.AppImage" },
+      { label: "Debian (.deb)", asset: "Typer_0.1.0_amd64.deb" },
+      { label: "AppImage", asset: "Typer_0.1.0_amd64.AppImage" },
+      { label: "RPM (.rpm)", asset: "Typer-0.1.0-1.x86_64.rpm" },
     ],
   },
 ];
@@ -72,7 +76,7 @@ export function Download() {
                 {p.files.map((f) => (
                   <a
                     key={f.asset}
-                    href={`${GITHUB_RELEASE}/download/${f.asset}`}
+                    href={`${GITHUB_RELEASE}/${f.asset}`}
                     onClick={() => trackDownload(p.name, f.asset)}
                     className="flex items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-sm font-medium text-neutral-300 transition hover:border-emerald-500/40 hover:bg-neutral-800 hover:text-white"
                   >
@@ -90,7 +94,7 @@ export function Download() {
         <p className="mt-8 text-center text-sm text-neutral-500">
           All downloads from{" "}
           <a
-            href={GITHUB_RELEASE}
+            href={GITHUB_RELEASES_PAGE}
             target="_blank"
             className="text-emerald-400 hover:underline"
           >
