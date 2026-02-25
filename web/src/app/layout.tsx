@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   title: "Typer — The app that types so you don't have to",
   description:
     "A cross-platform desktop app that simulates real keyboard input to bypass paste-blocking on exam platforms. macOS, Windows, Linux.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "Typer",
     description: "The app that types so you don't have to.",
