@@ -1,7 +1,3 @@
-"use client";
-
-import { track } from "@vercel/analytics";
-
 const GITHUB_RELEASE =
   "https://github.com/vishesh-sachan/typer/releases/download/v0.1.0";
 const GITHUB_RELEASES_PAGE =
@@ -47,10 +43,6 @@ const platforms = [
   },
 ];
 
-function trackDownload(platform: string, asset: string) {
-  track("download", { platform, asset });
-}
-
 export function Download() {
   return (
     <section id="download" className="px-6 py-24">
@@ -77,7 +69,6 @@ export function Download() {
                   <a
                     key={f.asset}
                     href={`${GITHUB_RELEASE}/${f.asset}`}
-                    onClick={() => trackDownload(p.name, f.asset)}
                     className="flex items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-800/50 px-4 py-2.5 text-sm font-medium text-neutral-300 transition hover:border-emerald-500/40 hover:bg-neutral-800 hover:text-white"
                   >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
