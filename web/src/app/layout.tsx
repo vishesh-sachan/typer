@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,8 +14,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Typer",
-  description: "The app that types so you don't have to.",
+  title: "Typer — The app that types so you don't have to",
+  description:
+    "A cross-platform desktop app that simulates real keyboard input to bypass paste-blocking on exam platforms. macOS, Windows, Linux.",
+  openGraph: {
+    title: "Typer",
+    description: "The app that types so you don't have to.",
+    url: "https://github.com/vishesh-sachan/typer",
+    siteName: "Typer",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Typer",
+    description: "The app that types so you don't have to.",
+  },
 };
 
 export default function RootLayout({
@@ -28,6 +42,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
